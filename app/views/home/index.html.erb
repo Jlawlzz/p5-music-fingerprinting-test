@@ -1,12 +1,26 @@
-<iframe width="100%" height="450" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/244482111&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true"></iframe>
+<script src="https://connect.soundcloud.com/sdk/sdk-3.0.0.js"></script>
 
-<script type="text/javascript">
+<script>
+
+var source, analyser, context, dataArray, bufferLength, fft;
 
 function setup(){
-  cnv = createCanvas(1450 , 850);
-  fft = new p5.FFT();
-  amp = new p5.Amplitude();
-  timer = 0;
+
+  context = new webkitAudioContext(),
+  audio = new Audio(), source, url = 'http://api.soundcloud.com/tracks/234292033/stream' + '?client_id=e6cec03e9db1f86a994857320fa6b7e3';
+  audio.crossOrigin = "anonymous";
+  audio.src = url;
+  source = context.createMediaElementSource(audio);
+  analyser = context.createAnalyser();
+  source.connect(analyser);
+  analyser.connect(context.destination);
+  source.mediaElement.play();
+
+  analyser.fftSize = 4096;
+  bufferLength = analyser.frequencyBinCount;
+  console.log(bufferLength);
+  dataArray = new Uint8Array(bufferLength);
+
   botPeak = 0;
   botHighPeak = 0;
   midPeak = 0;
@@ -14,60 +28,73 @@ function setup(){
   highPeak = 0;
 }
 
-var myVar = setInterval(myTimer, 1000);
+var myVar = setInterval(myAjax, 5000);
+var myTime = setInterval(myTimer, 20);
 var array = []
+var payloadArray = []
 
-function myTimer() {
+var timer = 0
+
+function myTimer(){
+  payloadArray.push(array)
+  botPeak = 0;
+  botHighPeak = 0;
+  midPeak = 0;
+  midHighPeak = 0;
+  highPeak = 0;
+}
+
+function myAjax() {
+  console.log(payloadArray)
   $.ajax({
           type: 'POST',
           url: '/songs',
-          data: { frequencies: array }
+          data: { frequencies: payloadArray }
       });
-  console.log(array);
+
+  payloadArray = []
 }
 
 function draw(){
-  var spectrum = fft.analyze();
-  var botFreq = fft.getEnergy(30, 40);
-  var botHighFreq = fft.getEnergy(40, 80);
-  var midFreq = fft.getEnergy(80, 120);
-  var midHighFreq = fft.getEnergy(120, 180);
-  var highFreq = fft.getEnergy(180, 300);
-  //
-  for (var i = 0; i< spectrum.length; i++){
-    timer++
-  }
+  drawVisual = requestAnimationFrame(draw);
+  analyser.getByteFrequencyData(dataArray);
 
-  if (botPeak < botFreq){
+  var botFreq = dataArray[6];
+  var botHighFreq = dataArray[12];
+  var midFreq = dataArray[50];
+  var midHighFreq = dataArray[300];
+  var highFreq = dataArray[500];
+
+  if ((botPeak < botFreq) && (botFreq != null)){
       botPeak = botFreq;
 
-      array = [botPeak, botHighPeak, midPeak, midHighPeak]
+      array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
       // console.log(array);
 
   }
 
-  if (botHighPeak < botHighFreq){
+  if ((botHighPeak < botHighFreq) && (botHighFreq != null)){
       botHighPeak = botHighFreq;
 
       array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
       // console.log(array);
   }
 
-  if (midPeak < midFreq){
+  if ((midPeak < midFreq) && (midFreq != null)){
       midPeak = midFreq;
 
       array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
       // console.log(array);
   }
 
-  if (midHighPeak < midHighFreq){
+  if ((midHighPeak < midHighFreq)  && (midHighFreq != null)){
       midHighPeak = midHighFreq;
 
       array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
       // console.log(array);
   }
 
-  if (highPeak < highFreq){
+  if ((highPeak < highFreq) && (highFreq != null)){
       highPeak = highFreq;
 
       array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
