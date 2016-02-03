@@ -1,81 +1,81 @@
-function preload(){
-  sound = loadSound('assets/audios/fault_line.mp3');
-}
+<iframe width="100%" height="450" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/244482111&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;visual=true"></iframe>
+
+<script type="text/javascript">
 
 function setup(){
-  cnv = createCanvas(1450 , 850);
-  sound.amp(.6);
-  sound.loop();
+  sound = new p5.AudioIn();
   fft = new p5.FFT();
   amp = new p5.Amplitude();
+  sound.amp(.6);
+  timer = 0;
+  botPeak = 0;
+  botHighPeak = 0;
+  midPeak = 0;
+  midHighPeak = 0;
+  highPeak = 0;
+}
+
+var myVar = setInterval(myTimer, 1000);
+var array = []
+
+function myTimer() {
+  $.ajax({
+          type: 'POST',
+          url: '/songs',
+          data: { frequencies: array }
+      });
+  console.log(array);
 }
 
 function draw(){
-
-  var ampLevel = amp.getLevel();
-  var ampLevelWidth = map(ampLevel, .34, .6, 100, 300)
-  var ampLevelHeight = map(ampLevel, 0, 1, 2, 100)
-  var ampLevelColor1 = map(ampLevel, 0, .4, 0, 255)
-  var ampLevelColor2 = map(ampLevel, 0, .4, 0, 100)
-  var ampLevelColor3 = map(ampLevel, 0, .4, 255, 0)
-  var ampLevelStroke = map(ampLevel, .02, .3, 2, .085)
-  var ampLevelRed = map(ampLevel, .40, .5, 230, 255);
-  var ampLevelGreen = map(ampLevel, 0, .48, 255, 0);
-  var ampLevelBlue = 0;
-
-  if (ampLevel < .1) {
-    var ampLevelRed = map(ampLevel, 0, .08, 0, 100);
-  } else if (.1 < ampLevel < .42) {
-    var ampLevelRed = map(ampLevel, .08, .40, 100, 230);
-  }
-
-  if (ampLevel > .42) {
-    var ampLevelGreen = 0;
-  } else if ( 0 < ampLevel < .03) {
-    var ampLevelGreen = map(ampLevel, 0, .03, 60, 255);
-  }
-
-  if (ampLevel < .03) {
-    var ampLevelBlue = map(ampLevel, 0, .03, 255, 0);
-  }
-
-  if (ampLevel < .4) {
-    var ampLevelWidth = map(ampLevel, 0, .34, 10, 100);
-  }
-
-  if (ampLevel < .020) {
-    var ampLevelStroke = map(ampLevel, 0, .020, 6, 2);
-  }
-
-  background(0);
-
-  translate((.5 * width), (.5 * height));
-
   var spectrum = fft.analyze();
-  stroke(ampLevelRed, ampLevelGreen, 0);
-  strokeWeight(ampLevelStroke);
-  // fill(ampLevelRed , ampLevelGreen, 0); //rgb
-  // noStroke();
-
+  var botFreq = fft.getEnergy(30, 40);
+  var botHighFreq = fft.getEnergy(40, 80);
+  var midFreq = fft.getEnergy(80, 120);
+  var midHighFreq = fft.getEnergy(120, 180);
+  var highFreq = fft.getEnergy(180, 300);
+  //
   for (var i = 0; i< spectrum.length; i++){
-    var x = map(i, 0, ampLevelWidth, width, 0);
-    var h = -height + map(spectrum[i], 0, 700, height, 0);
-
-                                   // ^ changes scope closer or farther away by decraseing value(default 250)
-    rotate(.1, .1)
-    rect(0, ampLevelHeight, width / spectrum.length, -h)
+    timer++
   }
 
-  var waveform = fft.waveform();
-  noFill();
-  beginShape();
-  stroke(255,0,0); // waveform is red
-  strokeWeight(0, 0, ampLevelStroke);
-  for (var i = 1; i< waveform.length; i++){
-    var x = map(i, 0, ampLevel, 0, width);
-    var y = map( waveform[i], -1, 1, 0, height);
-    vertex(x,y);
+  if (botPeak < botFreq){
+      botPeak = botFreq;
+
+      array = [botPeak, botHighPeak, midPeak, midHighPeak]
+      // console.log(array);
+
   }
+
+  if (botHighPeak < botHighFreq){
+      botHighPeak = botHighFreq;
+
+      array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
+      // console.log(array);
+  }
+
+  if (midPeak < midFreq){
+      midPeak = midFreq;
+
+      array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
+      // console.log(array);
+  }
+
+  if (midHighPeak < midHighFreq){
+      midHighPeak = midHighFreq;
+
+      array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
+      // console.log(array);
+  }
+
+  if (highPeak < highFreq){
+      highPeak = highFreq;
+
+      array = [botPeak, botHighPeak, midPeak, midHighPeak, highPeak]
+      // console.log(array);
+  }
+
   endShape();
 }
-  }
+
+</script>
